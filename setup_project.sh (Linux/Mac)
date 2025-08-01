@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Create directory structure
+mkdir -p ai-assistant-odoo/ai_assistant/{controllers,data,models,security,static/{description,src/{css,js,xml}},views,wizard}
+mkdir -p ai-assistant-odoo/{docs,tests,scripts,.github/{workflows,ISSUE_TEMPLATE}}
+cd ai-assistant-odoo
+
+echo "🚀 Creating AI Assistant for Odoo project structure..."
+
+# Create all files (content provided below)
+echo "✅ Project structure created! Copy the file contents from the artifact."
