@@ -1,3 +1,50 @@
+# Add after existing imports
+import os
+from odoo.exceptions import AccessError
+
+# Add this method to the AIAssistantConfig class:
+@api.model
+def get_active_config(self):
+    """Get the active AI configuration (centralized service)"""
+    # Check if centralized config exists
+    config = self.search([('is_active', '=', True)], limit=1)
+    
+    if not config:
+        # Auto-create centralized configuration with YOUR keys
+        config = self._create_centralized_config()
+    
+    return config
+
+def _create_centralized_config(self):
+    """Create centralized configuration with your API keys"""
+    # These are YOUR API keys (encrypted in database)
+    centralized_config = {
+        'name': 'Centralized AI Service',
+        'provider': 'openai',  # or 'anthropic'
+        'api_key': 'YOUR_API_KEY_HERE',  # You'll set this during deployment
+        'model_name': 'gpt-3.5-turbo',
+        'max_tokens': 1000,
+        'temperature': 0.7,
+        'cost_per_1k_tokens': 0.002,
+        'markup_percentage': 400.0,  # 5x markup = 80% profit
+        'credit_rate': 10.0,
+        'is_active': True,
+    }
+    
+    return self.create(centralized_config)
+
+# Override create/write to prevent unauthorized API changes
+@api.model
+def create(self, vals):
+    if not self.env.user.has_group('base.group_system'):
+        raise AccessError("Only system administrators can create AI configurations.")
+    return super().create(vals)
+
+def write(self, vals):
+    if not self.env.user.has_group('base.group_system'):
+        if 'api_key' in vals or 'provider' in vals:
+            raise AccessError("API configuration is managed centrally.")
+    return super(AIAssistantConfig, self).write(vals)
 from odoo import models, fields, api, exceptions
 import logging
 
@@ -293,3 +340,4 @@ class AIAssistantConfig(models.Model):
             'sample_costs': sample_costs,
             'status': self.api_status,
         }
+
