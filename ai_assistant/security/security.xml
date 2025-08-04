@@ -1,1 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================
+         USER GROUPS
+         ================================ -->
+    
+    <!-- Basic AI Assistant User Group -->
+    <record id="group_ai_assistant_user" model="res.groups">
+        <field name="name">AI Assistant User</field>
+        <field name="category_id" ref="base.module_category_tools"/>
+        <field name="comment">Users can access AI Assistant chat and manage their own conversations and credits</field>
+    </record>
+    
+    <!-- AI Assistant Manager Group -->
+    <record id="group_ai_assistant_manager" model="res.groups">
+        <field name="name">AI Assistant Manager</field>
+        <field name="category_id" ref="base.module_category_tools"/>
+        <field name="implied_ids" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="comment">Can manage AI configurations, view all user data, and access business analytics</field>
+    </record>
+
+    <!-- ================================
+         RECORD RULES (Row Level Security)
+         ================================ -->
+
+    <!-- Users can only access their own conversations -->
+    <record id="rule_ai_conversation_user_own" model="ir.rule">
+        <field name="name">AI Conversation: User can only access own conversations</field>
+        <field name="model_id" ref="model_ai_conversation"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Managers can access all conversations -->
+    <record id="rule_ai_conversation_manager_all" model="ir.rule">
+        <field name="name">AI Conversation: Managers can access all conversations</field>
+        <field name="model_id" ref="model_ai_conversation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Users can only access messages from their own conversations -->
+    <record id="rule_ai_message_user_own" model="ir.rule">
+        <field name="name">AI Message: User can only access own messages</field>
+        <field name="model_id" ref="model_ai_message"/>
+        <field name="domain_force">[('conversation_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Managers can access all messages -->
+    <record id="rule_ai_message_manager_all" model="ir.rule">
+        <field name="name">AI Message: Managers can access all messages</field>
+        <field name="model_id" ref="model_ai_message"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Users can only access their own credit records -->
+    <record id="rule_ai_user_credit_user_own" model="ir.rule">
+        <field name="name">AI User Credit: User can only access own credits</field>
+        <field name="model_id" ref="model_ai_user_credit"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Managers can access all user credits -->
+    <record id="rule_ai_user_credit_manager_all" model="ir.rule">
+        <field name="name">AI User Credit: Managers can access all user credits</field>
+        <field name="model_id" ref="model_ai_user_credit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Users can only access their own credit transactions -->
+    <record id="rule_ai_credit_transaction_user_own" model="ir.rule">
+        <field name="name">AI Credit Transaction: User can only access own transactions</field>
+        <field name="model_id" ref="model_ai_credit_transaction"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Managers can access all credit transactions -->
+    <record id="rule_ai_credit_transaction_manager_all" model="ir.rule">
+        <field name="name">AI Credit Transaction: Managers can access all transactions</field>
+        <field name="model_id" ref="model_ai_credit_transaction"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- AI Configuration: Only managers can access -->
+    <record id="rule_ai_assistant_config_manager_only" model="ir.rule">
+        <field name="name">AI Assistant Config: Only managers can access</field>
+        <field name="model_id" ref="model_ai_assistant_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Business Analytics: Only managers can access -->
+    <record id="rule_ai_business_analytics_manager_only" model="ir.rule">
+        <field name="name">AI Business Analytics: Only managers can access</field>
+        <field name="model_id" ref="model_ai_business_analytics"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ================================
+         FIELD LEVEL SECURITY
+         ================================ -->
+
+    <!-- Hide sensitive fields from regular users -->
+    <record id="field_ai_message_actual_cost_usd" model="ir.model.fields">
+        <field name="model">ai.message</field>
+        <field name="name">actual_cost_usd</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+    </record>
+
+    <record id="field_ai_message_revenue_usd" model="ir.model.fields">
+        <field name="model">ai.message</field>
+        <field name="name">revenue_usd</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+    </record>
+
+    <record id="field_ai_user_credit_total_spent_usd" model="ir.model.fields">
+        <field name="model">ai.user.credit</field>
+        <field name="name">total_spent_usd</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+    </record>
+
+    <!-- ================================
+         MENU SECURITY
+         ================================ -->
+
+    <!-- Basic users get access to main menu -->
+    <record id="menu_ai_assistant_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_user'))]"/>
+    </record>
+
+    <!-- Chat menu for all users -->
+    <record id="menu_ai_chat" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_user'))]"/>
+    </record>
+
+    <!-- My Account menu for all users -->
+    <record id="menu_ai_my_account" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_user'))]"/>
+    </record>
+
+    <!-- Conversations menu for all users -->
+    <record id="menu_ai_conversations" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_user'))]"/>
+    </record>
+
+    <!-- Business Analytics menu only for managers -->
+    <record id="menu_ai_business" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+    </record>
+
+    <!-- Configuration menu only for managers -->
+    <record id="menu_ai_configuration" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('group_ai_assistant_manager'))]"/>
+    </record>
+
+    <!-- ================================
+         DATA ACCESS SECURITY
+         ================================ -->
+
+    <!-- Prevent users from accessing sensitive configuration data -->
+    <record id="rule_ai_config_api_key_protection" model="ir.rule">
+        <field name="name">AI Config: Protect API keys from non-managers</field>
+        <field name="model_id" ref="model_ai_assistant_config"/>
+        <field name="domain_force">[('api_key', '=', False)]</field>
+        <field name="groups" eval="[(4, ref('group_ai_assistant_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ================================
+         AUTOMATED USER GROUP ASSIGNMENT
+         ================================ -->
+
+    <!-- Automatically add all users to AI Assistant User group -->
+    <function model="res.groups" name="add_implied_ids">
+        <value model="res.groups" search="[('name', '=', 'Employee')]"/>
+        <value eval="[(4, ref('group_ai_assistant_user'))]"/>
+    </function>
+
+    <!-- ================================
+         SYSTEM PARAMETER SECURITY
+         ================================ -->
+
+    <!-- Protect system parameters -->
+    <record id="config_parameter_ai_free_credits" model="ir.config_parameter">
+        <field name="key">ai_assistant.free_credits</field>
+        <field name="value">10.0</field>
+    </record>
+
+    <record id="config_parameter_ai_max_tokens" model="ir.config_parameter">
+        <field name="key">ai_assistant.max_tokens_per_request</field>
+        <field name="value">2000</field>
+    </record>
+
+    <record id="config_parameter_ai_rate_limit" model="ir.config_parameter">
+        <field name="key">ai_assistant.rate_limit_per_minute</field>
+        <field name="value">10</field>
+    </record>
+
+    <!-- ================================
+         AUDIT LOG RULES
+         ================================ -->
+
+    <!-- Enable audit logging for sensitive operations -->
+    <record id="audit_rule_ai_config_changes" model="ir.rule">
+        <field name="name">Audit: Log AI configuration changes</field>
+        <field name="model_id" ref="model_ai_assistant_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ================================
+         API ACCESS SECURITY
+         ================================ -->
+
+    <!-- Rate limiting and API access control would be handled in controllers -->
+    
+    <!-- ================================
+         COMPANY MULTI-TENANCY
+         ================================ -->
+
+    <!-- Ensure data isolation between companies -->
+    <record id="rule_ai_conversation_company" model="ir.rule">
+        <field name="name">AI Conversation: Company isolation</field>
+        <field name="model_id" ref="model_ai_conversation"/>
+        <field name="domain_force">['|', ('user_id.company_id', '=', False), ('user_id.company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+    <record id="rule_ai_user_credit_company" model="ir.rule">
+        <field name="name">AI User Credit: Company isolation</field>
+        <field name="model_id" ref="model_ai_user_credit"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+    <record id="rule_ai_config_company" model="ir.rule">
+        <field name="name">AI Config: Company isolation</field>
+        <field name="model_id" ref="model_ai_assistant_config"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+    <!-- ================================
+         SECURITY NOTIFICATIONS
+         ================================ -->
+
+    <!-- Security-related notifications and logging -->
+    <record id="mail_template_security_alert" model="mail.template">
+        <field name="name">AI Assistant: Security Alert</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="subject">AI Assistant Security Alert</field>
+        <field name="body_html">
+            <![CDATA[
+            <div style="margin: 0px; padding: 0px;">
+                <p>Hello ${object.name},</p>
+                <p>This is to notify you of a security-related event in the AI Assistant:</p>
+                <ul>
+                    <li>User: ${object.name}</li>
+                    <li>Action: ${ctx.get('action', 'Unknown')}</li>
+                    <li>Time: ${ctx.get('timestamp', 'Unknown')}</li>
+                    <li>IP Address: ${ctx.get('ip_address', 'Unknown')}</li>
+                </ul>
+                <p>If this was not you, please contact your system administrator immediately.</p>
+                <p>Best regards,<br/>AI Assistant Security System</p>
+            </div>
+            ]]>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- ================================
+         DEFAULT PERMISSIONS
+         ================================ -->
+
+    <!-- Set default permissions for new users -->
+    <function model="ir.default" name="set">
+        <value>ai.user.credit</value>
+        <value>is_active</value>
+        <value eval="True"/>
+        <value eval="False"/>
+        <value model="res.groups" search="[('name', '=', 'AI Assistant User')]"/>
+        <value eval="False"/>
+    </function>
+
+    <!-- ================================
+         SECURITY VALIDATION RULES
+         ================================ -->
+
+    <!-- Validate that users can't exceed credit limits -->
+    <record id="constraint_credit_limit" model="ir.model.constraint">
+        <field name="name">ai_user_credit_limit_check</field>
+        <field name="model" ref="model_ai_user_credit"/>
+        <field name="type">check</field>
+        <field name="definition">CHECK (total_credits &lt;= credit_limit)</field>
+        <field name="message">Total credits cannot exceed the credit limit</field>
+    </record>
+
+    <!-- Validate that used credits don't exceed total credits -->
+    <record id="constraint_used_credits" model="ir.model.constraint">
+        <field name="name">ai_user_credit_used_check</field>
+        <field name="model" ref="model_ai_user_credit"/>
+        <field name="type">check</field>
+        <field name="definition">CHECK (used_credits &lt;= total_credits)</field>
+        <field name="message">Used credits cannot exceed total credits</field>
+    </record>
+
+    <!-- Validate positive credit amounts -->
+    <record id="constraint_positive_credits" model="ir.model.constraint">
+        <field name="name">ai_user_credit_positive_check</field>
+        <field name="model" ref="model_ai_user_credit"/>
+        <field name="type">check</field>
+        <field name="definition">CHECK (total_credits &gt;= 0 AND used_credits &gt;= 0)</field>
+        <field name="message">Credit amounts must be positive</field>
+    </record>
+</odoo>
 
