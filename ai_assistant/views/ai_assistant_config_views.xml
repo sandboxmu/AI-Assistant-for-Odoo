@@ -143,5 +143,187 @@
                             <!-- Pricing Calculator -->
                             <div class="alert alert-success" groups="base.group_system">
                                 <h4><i class="fa fa-calculator"/> Pricing Calculator</h4>
-                                <table class="table
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Message Size</th>
+                                            <th>Your Cost</th>
+                                            <th>User Pays (Credits)</th>
+                                            <th>User Pays (USD)</th>
+                                            <th>Your Profit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Small (100 tokens)</td>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.1)"/>
+                                            <td t-esc="'%.3f' % (cost_per_1k_tokens * 0.1 * (1 + markup_percentage/100) * credit_rate)"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.1 * (1 + markup_percentage/100))"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.1 * markup_percentage/100)"/>
+                                        </tr>
+                                        <tr>
+                                            <td>Medium (500 tokens)</td>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.5)"/>
+                                            <td t-esc="'%.3f' % (cost_per_1k_tokens * 0.5 * (1 + markup_percentage/100) * credit_rate)"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.5 * (1 + markup_percentage/100))"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * 0.5 * markup_percentage/100)"/>
+                                        </tr>
+                                        <tr>
+                                            <td>Large (1000 tokens)</td>
+                                            <td t-esc="'$%.4f' % cost_per_1k_tokens"/>
+                                            <td t-esc="'%.3f' % (cost_per_1k_tokens * (1 + markup_percentage/100) * credit_rate)"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * (1 + markup_percentage/100))"/>
+                                            <td t-esc="'$%.4f' % (cost_per_1k_tokens * markup_percentage/100)"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </page>
 
+                        <page string="Business Metrics" name="metrics" groups="base.group_system">
+                            <group string="Usage Statistics">
+                                <group>
+                                    <field name="total_tokens_used" readonly="1"/>
+                                    <field name="total_cost_usd" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_revenue_usd" readonly="1"/>
+                                    <field name="total_profit_usd" readonly="1"/>
+                                    <field name="profit_margin_percent" readonly="1" widget="percentage"/>
+                                </group>
+                            </group>
+
+                            <separator string="Performance Summary"/>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h5><i class="fa fa-chart-bar"/> Usage Overview</h5>
+                                        <ul>
+                                            <li>Total tokens processed: <strong t-field="total_tokens_used"/></li>
+                                            <li>Average cost per 1K tokens: <strong>$<span t-esc="(total_cost_usd / (total_tokens_used/1000)) if total_tokens_used > 0 else 0"/></strong></li>
+                                            <li>Last API call: <strong t-field="last_api_call"/></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-success">
+                                        <h5><i class="fa fa-money-bill-wave"/> Revenue Overview</h5>
+                                        <ul>
+                                            <li>Total revenue: <strong>$<span t-field="total_revenue_usd"/></strong></li>
+                                            <li>Total profit: <strong>$<span t-field="total_profit_usd"/></strong></li>
+                                            <li>Profit margin: <strong><span t-field="profit_margin_percent"/>%</strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="API Status" name="api_status">
+                            <group>
+                                <group>
+                                    <field name="api_status" readonly="1"/>
+                                    <field name="last_api_call" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="api_error_message" readonly="1" 
+                                           attrs="{'invisible': [('api_error_message', '=', False)]}"/>
+                                </group>
+                            </group>
+
+                            <div class="alert alert-success" attrs="{'invisible': [('api_status', '!=', 'working')]}">
+                                <h4><i class="fa fa-check-circle"/> API Connection Working</h4>
+                                <p>The AI service is responding correctly. Last successful call: <span t-field="last_api_call"/></p>
+                            </div>
+
+                            <div class="alert alert-danger" attrs="{'invisible': [('api_status', '!=', 'error')]}">
+                                <h4><i class="fa fa-exclamation-triangle"/> API Connection Error</h4>
+                                <p>There was an error connecting to the AI service:</p>
+                                <p t-field="api_error_message"/>
+                                <p><strong>Troubleshooting:</strong></p>
+                                <ul>
+                                    <li>Check that your API key is correct and active</li>
+                                    <li>Verify you have sufficient credits with your AI provider</li>
+                                    <li>Ensure the model name is correct and available</li>
+                                    <li>Check your internet connection and firewall settings</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-warning" attrs="{'invisible': [('api_status', '!=', 'unknown')]}">
+                                <h4><i class="fa fa-question-circle"/> API Status Unknown</h4>
+                                <p>The API connection has not been tested yet. Click "Test Connection" to verify your settings.</p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Configuration Search View -->
+    <record id="view_ai_assistant_config_search" model="ir.ui.view">
+        <field name="name">ai.assistant.config.search</field>
+        <field name="model">ai.assistant.config</field>
+        <field name="arch" type="xml">
+            <search string="Search AI Configurations">
+                <field name="name"/>
+                <field name="provider"/>
+                <field name="model_name"/>
+                
+                <filter string="Active" name="active" domain="[('is_active', '=', True)]"/>
+                <filter string="Working" name="working" domain="[('api_status', '=', 'working')]"/>
+                <filter string="Error" name="error" domain="[('api_status', '=', 'error')]"/>
+                <separator/>
+                <filter string="OpenAI" name="openai" domain="[('provider', '=', 'openai')]"/>
+                <filter string="Anthropic" name="anthropic" domain="[('provider', '=', 'anthropic')]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'api_status'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- User-friendly view (no admin fields) -->
+    <record id="view_ai_assistant_config_form_user" model="ir.ui.view">
+        <field name="name">ai.assistant.config.form.user</field>
+        <field name="model">ai.assistant.config</field>
+        <field name="arch" type="xml">
+            <form string="AI Service Information" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="provider" readonly="1"/>
+                            <field name="model_name" readonly="1"/>
+                            <field name="api_status" readonly="1" widget="badge"
+                                   decoration-success="api_status == 'working'"
+                                   decoration-danger="api_status == 'error'"
+                                   decoration-muted="api_status == 'unknown'"/>
+                        </group>
+                        <group>
+                            <field name="max_tokens" readonly="1"/>
+                            <field name="temperature" readonly="1"/>
+                            <field name="last_api_call" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info">
+                        <h4><i class="fa fa-info-circle"/> Service Information</h4>
+                        <p>This AI service is managed by your system administrator. 
+                           Contact them if you experience any issues or need configuration changes.</p>
+                        <p><strong>Current Status:</strong> 
+                            <span t-if="api_status == 'working'" class="text-success">✓ Working</span>
+                            <span t-elif="api_status == 'error'" class="text-danger">✗ Error</span>
+                            <span t-else="" class="text-muted">? Unknown</span>
+                        </p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
