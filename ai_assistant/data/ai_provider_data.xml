@@ -1,1 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ================================
+             DEFAULT AI CONFIGURATIONS
+             ================================ -->
+        
+        <!-- Default OpenAI Configuration -->
+        <record id="default_openai_config" model="ai.assistant.config">
+            <field name="name">OpenAI GPT-3.5 Turbo</field>
+            <field name="provider">openai</field>
+            <field name="model_name">gpt-3.5-turbo</field>
+            <field name="max_tokens">1000</field>
+            <field name="temperature">0.7</field>
+            <field name="cost_per_1k_tokens">0.002</field>
+            <field name="markup_percentage">300.0</field>
+            <field name="credit_rate">10.0</field>
+            <field name="is_active">False</field>
+        </record>
+        
+        <!-- OpenAI GPT-4 Configuration -->
+        <record id="openai_gpt4_config" model="ai.assistant.config">
+            <field name="name">OpenAI GPT-4</field>
+            <field name="provider">openai</field>
+            <field name="model_name">gpt-4</field>
+            <field name="max_tokens">1000</field>
+            <field name="temperature">0.7</field>
+            <field name="cost_per_1k_tokens">0.03</field>
+            <field name="markup_percentage">200.0</field>
+            <field name="credit_rate">10.0</field>
+            <field name="is_active">False</field>
+        </record>
+        
+        <!-- Default Anthropic Configuration -->
+        <record id="default_anthropic_config" model="ai.assistant.config">
+            <field name="name">Anthropic Claude-3 Sonnet</field>
+            <field name="provider">anthropic</field>
+            <field name="model_name">claude-3-sonnet-20240229</field>
+            <field name="max_tokens">1000</field>
+            <field name="temperature">0.7</field>
+            <field name="cost_per_1k_tokens">0.015</field>
+            <field name="markup_percentage">250.0</field>
+            <field name="credit_rate">10.0</field>
+            <field name="is_active">False</field>
+        </record>
+
+        <!-- Anthropic Claude-3 Haiku (Budget Option) -->
+        <record id="anthropic_haiku_config" model="ai.assistant.config">
+            <field name="name">Anthropic Claude-3 Haiku</field>
+            <field name="provider">anthropic</field>
+            <field name="model_name">claude-3-haiku-20240307</field>
+            <field name="max_tokens">1000</field>
+            <field name="temperature">0.7</field>
+            <field name="cost_per_1k_tokens">0.001</field>
+            <field name="markup_percentage">400.0</field>
+            <field name="credit_rate">10.0</field>
+            <field name="is_active">False</field>
+        </record>
+
+        <!-- ================================
+             SYSTEM PARAMETERS
+             ================================ -->
+        
+        <!-- Default free credits for new users -->
+        <record id="param_free_credits" model="ir.config_parameter">
+            <field name="key">ai_assistant.free_credits</field>
+            <field name="value">10.0</field>
+        </record>
+
+        <!-- Maximum tokens per request -->
+        <record id="param_max_tokens" model="ir.config_parameter">
+            <field name="key">ai_assistant.max_tokens_per_request</field>
+            <field name="value">2000</field>
+        </record>
+
+        <!-- Rate limit per user per minute -->
+        <record id="param_rate_limit" model="ir.config_parameter">
+            <field name="key">ai_assistant.rate_limit_per_minute</field>
+            <field name="value">10</field>
+        </record>
+
+        <!-- Default credit limit for new users -->
+        <record id="param_default_credit_limit" model="ir.config_parameter">
+            <field name="key">ai_assistant.default_credit_limit</field>
+            <field name="value">1000.0</field>
+        </record>
+
+        <!-- Enable/disable automatic user credit creation -->
+        <record id="param_auto_create_credits" model="ir.config_parameter">
+            <field name="key">ai_assistant.auto_create_user_credits</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Minimum credits warning threshold -->
+        <record id="param_low_credit_threshold" model="ir.config_parameter">
+            <field name="key">ai_assistant.low_credit_threshold</field>
+            <field name="value">5.0</field>
+        </record>
+
+        <!-- ================================
+             EMAIL TEMPLATES
+             ================================ -->
+
+        <!-- Welcome email for new users -->
+        <record id="email_template_welcome" model="mail.template">
+            <field name="name">AI Assistant: Welcome</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="subject">Welcome to AI Assistant for Odoo!</field>
+            <field name="email_from">${(object.company_id.email or user.email)|safe}</field>
+            <field name="email_to">${object.email}</field>
+            <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 32px;">🤖 Welcome to AI Assistant!</h1>
+        <p style="color: white; font-size: 16px; margin: 10px 0 0 0;">Your intelligent companion for all things Odoo</p>
+    </div>
+    
+    <div style="padding: 30px; background: white;">
+        <h2 style="color: #495057;">Hello ${object.name}!</h2>
+        
+        <p>Welcome to AI Assistant for Odoo! We're excited to help you get the most out of your Odoo experience.</p>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #28a745; margin-top: 0;">🎉 You've received 10 free credits to get started!</h3>
+            <p>These credits allow you to have approximately 100 conversations with our AI assistant.</p>
+        </div>
+        
+        <h3>What can AI Assistant help you with?</h3>
+        <ul style="line-height: 1.6;">
+            <li><strong>Understanding Odoo modules</strong> - Get explanations of any Odoo functionality</li>
+            <li><strong>Business process guidance</strong> - Learn best practices for your industry</li>
+            <li><strong>Troubleshooting issues</strong> - Get help when things aren't working as expected</li>
+            <li><strong>Development questions</strong> - Technical guidance for customizations</li>
+            <li><strong>Configuration advice</strong> - Optimize your Odoo setup</li>
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="/web#action=ai_assistant.action_ai_chat_view" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; padding: 15px 30px; text-decoration: none; 
+                      border-radius: 25px; font-weight: bold; display: inline-block;">
+                Start Your First Conversation
+            </a>
+        </div>
+        
+        <h3>Quick Tips:</h3>
+        <ul style="line-height: 1.6;">
+            <li>Be specific in your questions for better answers</li>
+            <li>You can ask follow-up questions in the same conversation</li>
+            <li>All your conversations are saved for future reference</li>
+            <li>Monitor your credit usage in the "My Account" section</li>
+        </ul>
+        
+        <p>If you have any questions or need help, don't hesitate to contact our support team.</p>
+        
+        <p>Happy chatting!<br/>
+        <strong>The AI Assistant Team</strong></p>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 12px;">
+        <p>This email was sent automatically. Please do not reply to this email.</p>
+    </div>
+</div>
+            ]]></field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- Low credits warning email -->
+        <record id="email_template_low_credits" model="mail.template">
+            <field name="name">AI Assistant: Low Credits Warning</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="subject">AI Assistant: Low Credits Warning</field>
+            <field name="email_from">${(object.company_id.email or user.email)|safe}</field>
+            <field name="email_to">${object.email}</field>
+            <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <div style="background: #ffc107; padding: 30px; text-align: center;">
+        <h1 style="color: #212529; margin: 0; font-size: 28px;">⚠️ Low Credits Warning</h1>
+        <p style="color: #212529; font-size: 16px; margin: 10px 0 0 0;">Your AI Assistant credits are running low</p>
+    </div>
+    
+    <div style="padding: 30px; background: white;">
+        <h2 style="color: #495057;">Hello ${object.name}!</h2>
+        
+        <p>This is a friendly reminder that your AI Assistant credits are running low.</p>
+        
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #856404; margin-top: 0;">Current Credit Status:</h3>
+            <p style="font-size: 18px; margin: 0;"><strong>Credits Remaining: ${ctx.get('remaining_credits', 'N/A')}</strong></p>
+            <p style="margin: 5px 0 0 0; color: #856404;">Estimated messages left: ~${ctx.get('estimated_messages', 'N/A')}</p>
+        </div>
+        
+        <p>To continue enjoying uninterrupted AI assistance, consider:</p>
+        
+        <ul style="line-height: 1.6;">
+            <li><strong>Purchase more credits</strong> - Get additional credits as needed</li>
+            <li><strong>Upgrade to a subscription</strong> - Unlimited usage with monthly plans</li>
+            <li><strong>Contact support</strong> - We're here to help with any questions</li>
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="/web#action=ai_assistant.action_ai_my_credits" 
+               style="background: #28a745; color: white; padding: 15px 30px; 
+                      text-decoration: none; border-radius: 25px; font-weight: bold; 
+                      display: inline-block; margin-right: 10px;">
+                View My Credits
+            </a>
+            <a href="/web#action=ai_assistant.action_ai_chat_view" 
+               style="background: #17a2b8; color: white; padding: 15px 30px; 
+                      text-decoration: none; border-radius: 25px; font-weight: bold; 
+                      display: inline-block;">
+                Continue Chatting
+            </a>
+        </div>
+        
+        <p><small>Don't want these notifications? You can disable them in your account settings.</small></p>
+        
+        <p>Thank you for using AI Assistant!<br/>
+        <strong>The AI Assistant Team</strong></p>
+    </div>
+</div>
+            ]]></field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- Credit purchase confirmation email -->
+        <record id="email_template_credit_purchase" model="mail.template">
+            <field name="name">AI Assistant: Credit Purchase Confirmation</field>
+            <field name="model_id" ref="model_ai_credit_transaction"/>
+            <field name="subject">AI Assistant: Credit Purchase Confirmed</field>
+            <field name="email_from">${(object.user_credit_id.company_id.email or user.email)|safe}</field>
+            <field name="email_to">${object.user_id.email}</field>
+            <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <div style="background: #28a745; padding: 30px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">✅ Purchase Confirmed!</h1>
+        <p style="color: white; font-size: 16px; margin: 10px 0 0 0;">Your AI Assistant credits have been added</p>
+    </div>
+    
+    <div style="padding: 30px; background: white;">
+        <h2 style="color: #495057;">Thank you ${object.user_id.name}!</h2>
+        
+        <p>Your credit purchase has been successfully processed and added to your account.</p>
+        
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #155724; margin-top: 0;">Purchase Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Credits Added:</td>
+                    <td style="padding: 8px 0;">${object.amount} credits</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Transaction Date:</td>
+                    <td style="padding: 8px 0;">${object.create_date.strftime('%Y-%m-%d %H:%M')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">New Balance:</td>
+                    <td style="padding: 8px 0;"><strong>${object.balance_after} credits</strong></td>
+                </tr>
+            </table>
+        </div>
+        
+        <p>You can now enjoy continued access to AI Assistant with your new credits!</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="/web#action=ai_assistant.action_ai_chat_view" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; padding: 15px 30px; text-decoration: none; 
+                      border-radius: 25px; font-weight: bold; display: inline-block;">
+                Start Chatting Now
+            </a>
+        </div>
+        
+        <p>Thank you for choosing AI Assistant!<br/>
+        <strong>The AI Assistant Team</strong></p>
+    </div>
+</div>
+            ]]></field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- ================================
+             SAMPLE DATA (DEV/DEMO ONLY)
+             ================================ -->
+
+        <!-- Demo conversation (only in demo/dev environments) -->
+        <record id="demo_conversation" model="ai.conversation" context="{'install_mode': True}">
+            <field name="title">Welcome to AI Assistant</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="context_info">Demo conversation showcasing AI Assistant capabilities</field>
+        </record>
+
+        <!-- Demo messages -->
+        <record id="demo_message_1" model="ai.message" context="{'install_mode': True}">
+            <field name="conversation_id" ref="demo_conversation"/>
+            <field name="content">Hello! I'm new to Odoo and wondering how to get started with inventory management?</field>
+            <field name="is_user_message" eval="True"/>
+        </record>
+
+        <record id="demo_message_2" model="ai.message" context="{'install_mode': True}">
+            <field name="conversation_id" ref="demo_conversation"/>
+            <field name="content">Welcome to Odoo! I'd be happy to help you get started with inventory management. Here's a step-by-step guide:
+
+1. **Install the Inventory module**: Go to Apps and install "Inventory"
+
+2. **Configure your warehouse**: Set up locations, routes, and basic settings
+
+3. **Create product categories**: Organize your products logically
+
+4. **Add your products**: Create product records with proper categorization
+
+5. **Set up suppliers**: Configure vendor information for purchasing
+
+6. **Initial stock**: Enter your current inventory levels
+
+7. **Configure reordering rules**: Set minimum stock levels for automatic procurement
+
+Would you like me to elaborate on any of these steps?</field>
+            <field name="is_user_message" eval="False"/>
+            <field name="tokens_used">150</field>
+            <field name="response_time">2.5</field>
+            <field name="credit_cost">0.02</field>
+        </record>
+
+        <!-- ================================
+             CRON JOBS
+             ================================ -->
+
+        <!-- Daily cleanup of old temporary data -->
+        <record id="cron_cleanup_temp_data" model="ir.cron">
+            <field name="name">AI Assistant: Cleanup Temporary Data</field>
+            <field name="model_id" ref="model_ai_message"/>
+            <field name="state">code</field>
+            <field name="code">
+# Clean up old error messages and temporary data
+old_date = fields.Datetime.now() - timedelta(days=30)
+old_errors = model.search([
+    ('error_message', '!=', False),
+    ('create_date', '&lt;', old_date)
+])
+old_errors.unlink()
+            </field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Weekly usage reports for managers -->
+        <record id="cron_weekly_usage_report" model="ir.cron">
+            <field name="name">AI Assistant: Weekly Usage Report</field>
+            <field name="model_id" ref="model_ai_business_analytics"/>
+            <field name="state">code</field>
+            <field name="code">
+# Send weekly usage reports to managers
+analytics = model.env['ai.business.analytics']
+report_data = analytics.get_business_metrics(7)
+
+# Send to all AI Assistant managers
+managers = model.env['res.users'].search([
+    ('groups_id', 'in', [model.env.ref('ai_assistant.group_ai_assistant_manager').id])
+])
+
+for manager in managers:
+    # Send usage report email (implement as needed)
+    pass
+            </field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>
 
