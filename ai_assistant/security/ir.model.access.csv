@@ -1,1 +1,23 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ai_conversation_user,ai.conversation.user,model_ai_conversation,group_ai_assistant_user,1,1,1,1
+access_ai_conversation_manager,ai.conversation.manager,model_ai_conversation,group_ai_assistant_manager,1,1,1,1
+access_ai_message_user,ai.message.user,model_ai_message,group_ai_assistant_user,1,1,1,0
+access_ai_message_manager,ai.message.manager,model_ai_message,group_ai_assistant_manager,1,1,1,1
+access_ai_assistant_config_user,ai.assistant.config.user,model_ai_assistant_config,group_ai_assistant_user,1,0,0,0
+access_ai_assistant_config_manager,ai.assistant.config.manager,model_ai_assistant_config,group_ai_assistant_manager,1,1,1,1
+access_ai_assistant_config_system,ai.assistant.config.system,model_ai_assistant_config,base.group_system,1,1,1,1
+access_ai_user_credit_user,ai.user.credit.user,model_ai_user_credit,group_ai_assistant_user,1,0,0,0
+access_ai_user_credit_manager,ai.user.credit.manager,model_ai_user_credit,group_ai_assistant_manager,1,1,1,1
+access_ai_user_credit_system,ai.user.credit.system,model_ai_user_credit,base.group_system,1,1,1,1
+access_ai_credit_transaction_user,ai.credit.transaction.user,model_ai_credit_transaction,group_ai_assistant_user,1,0,0,0
+access_ai_credit_transaction_manager,ai.credit.transaction.manager,model_ai_credit_transaction,group_ai_assistant_manager,1,1,1,1
+access_ai_credit_transaction_system,ai.credit.transaction.system,model_ai_credit_transaction,base.group_system,1,1,1,1
+access_ai_business_analytics_manager,ai.business.analytics.manager,model_ai_business_analytics,group_ai_assistant_manager,1,1,1,1
+access_ai_business_analytics_system,ai.business.analytics.system,model_ai_business_analytics,base.group_system,1,1,1,1
+access_ai_conversation_public,ai.conversation.public,model_ai_conversation,base.group_public,0,0,0,0
+access_ai_message_public,ai.message.public,model_ai_message,base.group_public,0,0,0,0
+access_ai_assistant_config_public,ai.assistant.config.public,model_ai_assistant_config,base.group_public,0,0,0,0
+access_ai_user_credit_public,ai.user.credit.public,model_ai_user_credit,base.group_public,0,0,0,0
+access_ai_credit_transaction_public,ai.credit.transaction.public,model_ai_credit_transaction,base.group_public,0,0,0,0
+access_ai_business_analytics_public,ai.business.analytics.public,model_ai_business_analytics,base.group_public,0,0,0,0
 
