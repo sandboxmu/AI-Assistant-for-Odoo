@@ -1,1 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- User Credits Tree View -->
+    <record id="view_ai_user_credit_tree" model="ir.ui.view">
+        <field name="name">ai.user.credit.tree</field>
+        <field name="model">ai.user.credit</field>
+        <field name="arch" type="xml">
+            <tree string="User Credits">
+                <field name="user_id"/>
+                <field name="total_credits"/>
+                <field name="used_credits"/>
+                <field name="remaining_credits"/>
+                <field name="is_subscription_active"/>
+                <field name="total_messages_sent"/>
+                <field name="total_spent_usd" groups="base.group_system"/>
+                <field name="last_usage_date"/>
+                <field name="is_active"/>
+            </tree>
+        </field>
+    </record>
 
+    <!-- User Credits Form View -->
+    <record id="view_ai_user_credit_form" model="ir.ui.view">
+        <field name="name">ai.user.credit.form</field>
+        <field name="model">ai.user.credit</field>
+        <field name="arch" type="xml">
+            <form string="User Credits">
+                <header>
+                    <button name="add_credits" 
+                            string="Add Credits" 
+                            type="object" 
+                            class="btn-primary"
+                            groups="base.group_system"
+                            context="{'default_user_credit_id': active_id}"/>
+                    <button name="reset_account" 
+                            string="Reset Account" 
+                            type="object" 
+                            class="btn-secondary"
+                            groups="base.group_system"
+                            confirm="Are you sure you want to reset this user's account? This will reset usage counters but not credit balance."/>
+                    <field name="is_active" widget="boolean_toggle" groups="base.group_system"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_transactions" icon="fa-list">
+                            <field string="Transactions" name="credit_transaction_ids" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-comments">
+                            <field string="Messages Sent" name="total_messages_sent" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-clock">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="last_usage_date" widget="relative"/>
+                                </span>
+                                <span class="o_stat_text">Last Usage</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="user_id" readonly="1"/>
+                        </h1>
+                        <div>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </div>
+                    </div>
+                    
+                    <!-- Credit Balance Cards -->
+                    <div class="row mb16">
+                        <div class="col-lg-4">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-primary">
+                                        <i class="fa fa-coins"/> <field name="remaining_credits" readonly="1"/>
+                                    </h4>
+                                    <p class="card-text">Credits Remaining</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-success">
+                                        <i class="fa fa-plus-circle"/> <field name="total_credits" readonly="1"/>
+                                    </h4>
+                                    <p class="card-text">Total Credits</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-info">
+                                        <i class="fa fa-minus-circle"/> <field name="used_credits" readonly="1"/>
+                                    </h4>
+                                    <p class="card-text">Credits Used</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Account Status">
+                            <field name="is_active" groups="base.group_system"/>
+                            <field name="credit_limit" groups="base.group_system"/>
+                            <field name="low_credit_warning_sent" readonly="1" groups="base.group_system"/>
+                        </group>
+                        <group string="Usage Statistics">
+                            <field name="total_messages_sent" readonly="1"/>
+                            <field name="total_tokens_used" readonly="1"/>
+                            <field name="total_spent_usd" readonly="1" groups="base.group_system"/>
+                            <field name="last_usage_date" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Subscription Information -->
+                    <group string="Subscription" attrs="{'invisible': [('subscription_id', '=', False)]}">
+                        <group>
+                            <field name="subscription_id"/>
+                            <field name="is_subscription_active" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="subscription_start" readonly="1"/>
+                            <field name="subscription_end" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Subscription Status Alert -->
+                    <div class="alert alert-success" attrs="{'invisible': [('is_subscription_active', '=', False)]}">
+                        <h4><i class="fa fa-star"/> Active Subscription</h4>
+                        <p>This user has an active subscription with unlimited AI usage until <strong t-field="subscription_end"/>.</p>
+                    </div>
+
+                    <!-- Low Credit Warning -->
+                    <div class="alert alert-warning" attrs="{'invisible': ['|', ('remaining_credits', '>=', 5), ('is_subscription_active', '=', True)]}">
+                        <h4><i class="fa fa-exclamation-triangle"/> Low Credits</h4>
+                        <p>This user has low credits (<strong t-field="remaining_credits"/> remaining). They may need to purchase more credits soon.</p>
+                    </div>
+                    
+                    <notebook>
+                        <page string="Credit Transactions" name="transactions">
+                            <field name="credit_transaction_ids" readonly="1">
+                                <tree create="false" edit="false" delete="false">
+                                    <field name="create_date"/>
+                                    <field name="transaction_type"/>
+                                    <field name="amount"/>
+                                    <field name="description"/>
+                                    <field name="balance_before"/>
+                                    <field name="balance_after"/>
+                                    <field name="message_id" attrs="{'invisible': [('message_id', '=', False)]}"/>
+                                    <field name="invoice_id" attrs="{'invisible': [('invoice_id', '=', False)]}" groups="base.group_system"/>
+                                </tree>
+                                <form string="Transaction Details">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="create_date" readonly="1"/>
+                                                <field name="transaction_type" readonly="1"/>
+                                                <field name="amount" readonly="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="balance_before" readonly="1"/>
+                                                <field name="balance_after" readonly="1"/>
+                                                <field name="message_id" readonly="1"/>
+                                                <field name="invoice_id" readonly="1" groups="base.group_system"/>
+                                            </group>
+                                        </group>
+                                        <group string="Description">
+                                            <field name="description" readonly="1" nolabel="1"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        
+                        <page string="Usage Analytics" name="analytics">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h5><i class="fa fa-chart-bar"/> Usage Summary (Last 30 Days)</h5>
+                                        <div id="usage_summary_30"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-success">
+                                        <h5><i class="fa fa-trophy"/> User Stats</h5>
+                                        <ul>
+                                            <li>Average credits per message: <strong t-esc="used_credits / (total_messages_sent or 1)"/> credits</li>
+                                            <li>Account age: <strong t-esc="(datetime.datetime.now() - create_date).days if create_date else 0"/> days</li>
+                                            <li>Credits remaining: <strong t-field="remaining_credits"/> credits</li>
+                                            <li>Estimated messages left: <strong t-esc="int(remaining_credits / (used_credits / (total_messages_sent or 1)))"/> messages</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Usage Chart Placeholder -->
+                            <separator string="Usage History"/>
+                            <div class="alert alert-light">
+                                <p><i class="fa fa-chart-line"/> Usage charts and detailed analytics would be displayed here in a full implementation.</p>
+                                <p>This could include daily usage trends, spending patterns, and comparison with other users.</p>
+                            </div>
+                        </page>
+
+                        <page string="Account Management" name="management" groups="base.group_system">
+                            <group string="Admin Actions">
+                                <button name="add_credits" string="Add Credits" type="object" class="btn-success"/>
+                                <button name="reset_account" string="Reset Usage Counters" type="object" class="btn-warning"
+                                        confirm="This will reset usage counters but not the credit balance. Continue?"/>
+                            </group>
+                            
+                            <separator string="Account Notes"/>
+                            <div class="alert alert-secondary">
+                                <h5>Admin Notes</h5>
+                                <ul>
+                                    <li>User registered: <span t-field="create_date"/></li>
+                                    <li>Total credits purchased: <span t-field="total_credits"/> credits</li>
+                                    <li>Total spent: $<span t-field="total_spent_usd"/></li>
+                                    <li>Credit limit: <span t-field="credit_limit"/> credits</li>
+                                    <li>Account status: <span t-if="is_active" class="text-success">Active</span><span t-else="" class="text-danger">Inactive</span></li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- User Credits Search View -->
+    <record id="view_ai_user_credit_search" model="ir.ui.view">
+        <field name="name">ai.user.credit.search</field>
+        <field name="model">ai.user.credit</field>
+        <field name="arch" type="xml">
+            <search string="Search User Credits">
+                <field name="user_id" string="User"/>
+                
+                <filter string="Active Users" name="active" domain="[('is_active', '=', True)]"/>
+                <filter string="Low Credits" name="low_credits" domain="[('remaining_credits', '&lt;', 5)]"/>
+                <filter string="High Usage" name="high_usage" domain="[('total_messages_sent', '&gt;', 100)]"/>
+                <separator/>
+                <filter string="With Subscription" name="with_subscription" domain="[('is_subscription_active', '=', True)]"/>
+                <filter string="No Subscription" name="no_subscription" domain="[('is_subscription_active', '=', False)]"/>
+                <separator/>
+                <filter string="Recent Activity" name="recent_activity" 
+                        domain="[('last_usage_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Inactive Users" name="inactive_users" 
+                        domain="['|', ('last_usage_date', '=', False), ('last_usage_date', '&lt;', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Subscription Status" name="group_subscription" context="{'group_by': 'is_subscription_active'}"/>
+                    <filter string="Credit Range" name="group_credits" context="{'group_by': 'remaining_credits'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Credit Transaction Views -->
+    <record id="view_ai_credit_transaction_tree" model="ir.ui.view">
+        <field name="name">ai.credit.transaction.tree</field>
+        <field name="model">ai.credit.transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Credit Transactions" create="false" edit="false">
+                <field name="create_date"/>
+                <field name="user_id"/>
+                <field name="transaction_type"/>
+                <field name="amount" sum="Total Amount"/>
+                <field name="description"/>
+                <field name="balance_after"/>
+                <field name="message_id" attrs="{'invisible': [('message_id', '=', False)]}"/>
+                <field name="invoice_id" attrs="{'invisible': [('invoice_id', '=', False)]}" groups="base.group_system"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ai_credit_transaction_form" model="ir.ui.view">
+        <field name="name">ai.credit.transaction.form</field>
+        <field name="model">ai.credit.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Credit Transaction" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="transaction_type" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="balance_before" readonly="1"/>
+                            <field name="balance_after" readonly="1"/>
+                            <field name="message_id" readonly="1"/>
+                            <field name="invoice_id" readonly="1" groups="base.group_system"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ai_credit_transaction_search" model="ir.ui.view">
+        <field name="name">ai.credit.transaction.search</field>
+        <field name="model">ai.credit.transaction</field>
+        <field name="arch" type="xml">
+            <search string="Search Credit Transactions">
+                <field name="user_id" string="User"/>
+                <field name="description" string="Description"/>
+                
+                <filter string="Today" name="today" 
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="This Week" name="this_week" 
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" name="this_month" 
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <separator/>
+                <filter string="Purchases" name="purchases" domain="[('transaction_type', '=', 'purchase')]"/>
+                <filter string="Usage" name="usage" domain="[('transaction_type', '=', 'usage')]"/>
+                <filter string="Bonuses" name="bonuses" domain="[('transaction_type', '=', 'bonus')]"/>
+                <filter string="Refunds" name="refunds" domain="[('transaction_type', '=', 'refund')]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Transaction Type" name="group_type" context="{'group_by': 'transaction_type'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- My Credits Action (User View) -->
+    <record id="action_ai_my_credits" model="ir.actions.act_window">
+        <field name="name">My AI Credits</field>
+        <field name="res_model">ai.user.credit</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to AI Assistant!
+            </p>
+            <p>
+                Your credit account will be created automatically when you start using the AI assistant.
+                You'll receive free credits to get started!
+            </p>
+        </field>
+    </record>
+</odoo>
