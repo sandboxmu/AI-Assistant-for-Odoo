@@ -1,1 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="ai_assistant.ChatWidget" owl="1">
+        <div class="ai-chat-container">
+            <!-- Low Credit Warning Banner -->
+            <div class="alert alert-warning alert-dismissible ai-credit-warning" 
+                 t-if="state.showCreditWarning and !state.userCredits?.is_subscription_active">
+                <button type="button" class="close" t-on-click="dismissCreditWarning">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong><i class="fa fa-exclamation-triangle"/> Low Credits!</strong>
+                You have <t t-esc="state.userCredits?.remaining_credits || 0"/> credits remaining.
+                <button class="btn btn-sm btn-warning ml-2" t-on-click="showPurchaseCreditsDialog">
+                    Get More Credits
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ml-1" t-on-click="refreshCredits">
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Connection Error Banner -->
+            <div class="alert alert-danger" t-if="state.connectionStatus === 'error'">
+                <strong><i class="fa fa-exclamation-circle"/> Service Unavailable</strong>
+                The AI service is currently unavailable. Please contact your administrator.
+            </div>
+
+            <!-- Main Chat Layout -->
+            <div class="ai-chat-layout">
+                <!-- Sidebar with conversations -->
+                <div class="ai-chat-sidebar">
+                    <div class="sidebar-header">
+                        <h4><i class="fa fa-robot"/> AI Assistant</h4>
+                        <button class="btn btn-primary btn-sm" t-on-click="createNewConversation"
+                                t-att-disabled="state.connectionStatus === 'error'">
+                            <i class="fa fa-plus"/> New Chat
+                        </button>
+                    </div>
+
+                    <!-- Credit Status -->
+                    <div class="credit-status-card" t-if="state.userCredits">
+                        <div class="credit-info">
+                            <div class="credit-balance">
+                                <span class="credit-amount" t-att-class="getCreditStatusClass()">
+                                    <i class="fa fa-coins"/> <t t-esc="getCreditStatusText()"/>
+                                </span>
+                                <small class="text-muted d-block">
+                                    ~<t t-esc="getEstimatedMessages()"/> messages left
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" t-on-click="showPurchaseCreditsDialog">
+                                <i class="fa fa-plus"/> Add Credits
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Conversations List -->
+                    <div class="conversation-list">
+                        <div t-if="state.conversations.length === 0" class="no-conversations">
+                            <div class="text-center text-muted p-3">
+                                <i class="fa fa-comments fa-2x mb-2"/>
+                                <p>No conversations yet.<br/>Start your first chat!</p>
+                            </div>
+                        </div>
+                        
+                        <div t-foreach="state.conversations" t-as="conversation" 
+                             t-key="conversation.id"
+                             class="conversation-item"
+                             t-att-class="state.currentConversation?.id === conversation.id ? 'active' : ''"
+                             t-on-click="() => this.selectConversation(conversation.id)">
+                            
+                            <div class="conversation-header">
+                                <div class="conversation-title" t-esc="conversation.title"/>
+                                <div class="conversation-actions">
+                                    <button class="btn btn-sm btn-link text-muted" 
+                                            t-on-click.stop="() => this.archiveConversation(conversation.id)"
+                                            title="Archive conversation">
+                                        <i class="fa fa-archive"/>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="conversation-meta">
+                                <small class="text-muted">
+                                    <i class="fa fa-comment"/> <t t-esc="conversation.message_count"/>
+                                    <t t-if="conversation.total_credits_used">
+                                        • <i class="fa fa-coins"/> <t t-esc="conversation.total_credits_used.toFixed(2)"/>
+                                    </t>
+                                </small>
+                                <small class="text-muted d-block">
+                                    <t t-if="conversation.last_message_date">
+                                        <t t-esc="formatDate(conversation.last_message_date)"/>
+                                    </t>
+                                    <t t-else="">
+                                        New conversation
+                                    </t>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main chat area -->
+                <div class="ai-chat-main">
+                    <!-- Welcome Screen -->
+                    <t t-if="!state.currentConversation">
+                        <div class="ai-chat-welcome">
+                            <div class="welcome-content">
+                                <div class="welcome-header">
+                                    <h2><i class="fa fa-robot"/> AI Assistant for Odoo</h2>
+                                    <p class="lead">Your intelligent companion for all things Odoo</p>
+                                </div>
+
+                                <div class="welcome-features">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5><i class="fa fa-lightbulb text-warning"/> What I can help with:</h5>
+                                            <ul class="feature-list">
+                                                <li><i class="fa fa-check text-success"/> Odoo modules and features</li>
+                                                <li><i class="fa fa-check text-success"/> Business process guidance</li>
+                                                <li><i class="fa fa-check text-success"/> Troubleshooting issues</li>
+                                                <li><i class="fa fa-check text-success"/> Development questions</li>
+                                                <li><i class="fa fa-check text-success"/> Best practices</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5><i class="fa fa-rocket text-primary"/> Quick Examples:</h5>
+                                            <div class="example-questions">
+                                                <button class="btn btn-outline-secondary btn-sm mb-2 d-block text-left"
+                                                        t-on-click="() => { this.state.newMessage = 'How do I create a new product in Odoo?'; this.createNewConversation().then(() => this.sendMessage()); }">
+                                                    "How do I create a new product in Odoo?"
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm mb-2 d-block text-left"
+                                                        t-on-click="() => { this.state.newMessage = 'What are the best practices for inventory management?'; this.createNewConversation().then(() => this.sendMessage()); }">
+                                                    "Best practices for inventory management?"
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm mb-2 d-block text-left"
+                                                        t-on-click="() => { this.state.newMessage = 'Help me set up accounting in Odoo'; this.createNewConversation().then(() => this.sendMessage()); }">
+                                                    "Help me set up accounting in Odoo"
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="welcome-actions">
+                                    <button class="btn btn-primary btn-lg" t-on-click="createNewConversation"
+                                            t-att-disabled="state.connectionStatus === 'error'">
+                                        <i class="fa fa-comments"/> Start a Conversation
+                                    </button>
+                                </div>
+
+                                <!-- Credit Status -->
+                                <div class="welcome-credits" t-if="state.userCredits">
+                                    <div class="alert alert-info">
+                                        <h6><i class="fa fa-info-circle"/> Your Account Status</h6>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <strong>Credits:</strong> <span t-esc="getCreditStatusText()"/>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <strong>Estimated messages:</strong> ~<t t-esc="getEstimatedMessages()"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Active Chat -->
+                    <t t-if="state.currentConversation">
+                        <!-- Chat header -->
+                        <div class="ai-chat-header">
+                            <div class="header-content">
+                                <div class="chat-title">
+                                    <h4 t-esc="state.currentConversation.title"/>
+                                    <small class="text-muted">
+                                        ID: <t t-esc="state.currentConversation.id"/>
+                                    </small>
+                                </div>
+                                <div class="header-actions">
+                                    <div class="credit-info" t-if="state.userCredits">
+                                        <span class="badge badge-pill" t-att-class="getCreditStatusClass().replace('text-', 'badge-')">
+                                            <i class="fa fa-coins"/> <t t-esc="getCreditStatusText()"/>
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary ml-2" 
+                                            t-on-click="() => this.archiveConversation(state.currentConversation.id)"
+                                            title="Archive this conversation">
+                                        <i class="fa fa-archive"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Messages container -->
+                        <div class="ai-chat-messages" t-ref="chatContainer">
+                            <!-- Loading indicator -->
+                            <t t-if="state.isLoading">
+                                <div class="loading-indicator">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading conversation...</span>
+                                    </div>
+                                    <p class="mt-2">Loading conversation...</p>
+                                </div>
+                            </t>
+                            
+                            <!-- Messages -->
+                            <div t-foreach="state.messages" t-as="message" t-key="message.id"
+                                 class="message-wrapper"
+                                 t-att-class="getMessageClass(message)">
+                                
+                                <div class="message-content">
+                                    <!-- Message text -->
+                                    <div class="message-text" t-esc="message.content"/>
+                                    
+                                    <!-- Message metadata -->
+                                    <div class="message-meta">
+                                        <small class="message-time">
+                                            <t t-esc="formatDate(message.create_date)"/>
+                                        </small>
+                                        
+                                        <!-- AI message metadata -->
+                                        <t t-if="!message.is_user_message and !message.temp">
+                                            <small class="message-stats">
+                                                <t t-if="message.tokens_used">
+                                                    • <i class="fa fa-microchip"/> <t t-esc="message.tokens_used"/> tokens
+                                                </t>
+                                                <t t-if="message.credit_cost">
+                                                    • <i class="fa fa-coins"/> <t t-esc="message.credit_cost.toFixed(3)"/> credits
+                                                </t>
+                                                <t t-if="message.response_time">
+                                                    • <i class="fa fa-clock"/> <t t-esc="(message.response_time * 1000).toFixed(0)"/>ms
+                                                </t>
+                                            </small>
+                                        </t>
+                                        
+                                        <!-- Error indicator -->
+                                        <t t-if="message.error_message">
+                                            <small class="text-danger">
+                                                • <i class="fa fa-exclamation-triangle"/> Error
+                                            </small>
+                                        </t>
+                                    </div>
+
+                                    <!-- Message actions -->
+                                    <div class="message-actions" t-if="!message.temp">
+                                        <button class="btn btn-sm btn-link text-muted" 
+                                                t-on-click="() => this.copyMessage(message.content)"
+                                                title="Copy message">
+                                            <i class="fa fa-copy"/>
+                                        </button>
+                                        <t t-if="!message.is_user_message">
+                                            <button class="btn btn-sm btn-link text-muted" 
+                                                    t-on-click="() => this.regenerateResponse(message.id)"
+                                                    title="Regenerate response">
+                                                <i class="fa fa-redo"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Typing indicator -->
+                            <t t-if="state.isTyping">
+                                <div class="message-wrapper ai-message">
+                                    <div class="message-content">
+                                        <div class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                        <div class="message-meta">
+                                            <small class="text-muted">AI is thinking...</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Message input -->
+                        <div class="ai-chat-input">
+                            <div class="input-container">
+                                <div class="input-group">
+                                    <textarea 
+                                        class="form-control message-input"
+                                        placeholder="Ask me anything about Odoo..."
+                                        t-model="state.newMessage"
+                                        t-on-keypress="onKeyPress"
+                                        t-on-input="onInputChange"
+                                        t-ref="messageInput"
+                                        rows="1"
+                                        t-att-disabled="state.isTyping or state.connectionStatus === 'error'"/>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary send-button" 
+                                                t-on-click="sendMessage"
+                                                t-att-disabled="state.isTyping or !state.newMessage.trim() or state.connectionStatus === 'error'">
+                                            <i class="fa fa-paper-plane" t-if="!state.isTyping"/>
+                                            <i class="fa fa-spinner fa-spin" t-if="state.isTyping"/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="input-help">
+                                    <small class="text-muted">
+                                        Press Enter to send, Shift+Enter for new line
+                                        <t t-if="state.userCredits and !state.userCredits.is_subscription_active">
+                                            • <t t-esc="state.userCredits.remaining_credits.toFixed(2)"/> credits remaining
+                                        </t>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
 
