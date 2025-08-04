@@ -1,24 +1,22 @@
-# ====================
-# Updated __manifest__.py (add billing dependencies)
-# ====================
 {
     'name': 'AI Assistant for Odoo',
     'version': '17.0.1.0.0',
     'category': 'Tools',
-    'summary': 'AI-powered assistant to answer Odoo-related questions with subscription billing',
+    'summary': 'AI-powered assistant with centralized billing system',
     'description': """
-AI Assistant for Odoo with Billing
-==================================
-This module provides an AI-powered chat interface with integrated billing system.
+AI Assistant for Odoo with Centralized Billing
+==============================================
+Complete AI chat system with centralized API management and credit-based billing.
+
 Features:
-- Chat interface integrated in Odoo
-- Conversation history
-- Context-aware responses
-- User access controls
-- Support for multiple AI providers
+- Multi-provider AI integration (OpenAI, Anthropic)
+- Real-time chat interface
+- Centralized API key management (admin-controlled)
 - Credit-based billing system
-- Subscription management
-- Usage tracking and analytics
+- Usage analytics and business metrics
+- Mobile-responsive design
+- User conversation history
+- Admin dashboard for cost/revenue tracking
     """,
     'author': 'Your Company',
     'website': 'https://www.yourcompany.com',
@@ -27,14 +25,11 @@ Features:
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/ai_provider_data.xml',
-        'data/billing_data.xml',
         'views/ai_conversation_views.xml',
         'views/ai_assistant_config_views.xml',
-        'views/ai_billing_views.xml',
-        'views/ai_subscription_views.xml',
+        'views/ai_user_credit_views.xml',
         'views/menu_views.xml',
         'views/ai_chat_template.xml',
-        'wizard/credit_purchase_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
@@ -47,4 +42,6 @@ Features:
     'application': True,
     'auto_install': False,
     'license': 'LGPL-3',
+    'price': 0.00,
+    'currency': 'USD',
 }
