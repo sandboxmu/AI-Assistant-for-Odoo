@@ -6,7 +6,7 @@
             <field name="name">AI Assistant Service</field>
             <field name="provider">openai</field>
             <field name="model_name">gpt-3.5-turbo</field>
-            <field name="api_key">REPLACE_WITH_YOUR_API_KEY</field>
+            <field name="api_key">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</field>
             <field name="max_tokens">1000</field>
             <field name="temperature">0.7</field>
             <field name="cost_per_1k_tokens">0.002</field>
@@ -18,12 +18,12 @@
         <!-- System Parameters for Your Service -->
         <record id="param_service_provider" model="ir.config_parameter">
             <field name="key">ai_assistant.service_provider</field>
-            <field name="value">Your Company Name</field>
+            <field name="value">Chat Whisperer</field>
         </record>
 
         <record id="param_support_email" model="ir.config_parameter">
             <field name="key">ai_assistant.support_email</field>
-            <field name="value">support@yourcompany.com</field>
+            <field name="value">omamet@chatwhisperer.ai</field>
         </record>
     </data>
 </odoo>
