@@ -1,1 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Conversation Tree View -->
+    <record id="view_ai_conversation_tree" model="ir.ui.view">
+        <field name="name">ai.conversation.tree</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <tree string="AI Conversations" default_order="last_message_date desc">
+                <field name="title"/>
+                <field name="user_id"/>
+                <field name="message_count"/>
+                <field name="total_tokens_used"/>
+                <field name="total_credits_used"/>
+                <field name="last_message_date"/>
+                <field name="is_active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Conversation Form View -->
+    <record id="view_ai_conversation_form" model="ir.ui.view">
+        <field name="name">ai.conversation.form</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <form string="AI Conversation">
+                <header>
+                    <button name="%(action_ai_chat_view)d" 
+                            string="Continue Chat" 
+                            type="action" 
+                            class="btn-primary"
+                            context="{'default_conversation_id': active_id}"
+                            attrs="{'invisible': [('is_active', '=', False)]}"/>
+                    <button name="archive_conversation" 
+                            string="Archive" 
+                            type="object" 
+                            class="btn-secondary"
+                            attrs="{'invisible': [('is_active', '=', False)]}"
+                            confirm="Are you sure you want to archive this conversation?"/>
+                    <field name="is_active" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_messages" icon="fa-comments">
+                            <field string="Messages" name="message_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="action" name="%(action_ai_chat_view)d" 
+                                icon="fa-robot" context="{'default_conversation_id': active_id}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Open</span>
+                                <span class="o_stat_text">Chat</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="title" placeholder="Conversation Title"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="last_message_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="message_count" readonly="1"/>
+                            <field name="total_tokens_used" readonly="1"/>
+                            <field name="total_credits_used" readonly="1"/>
+                            <field name="total_cost_usd" readonly="1" groups="base.group_system"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Messages" name="messages">
+                            <field name="message_ids" readonly="1">
+                                <tree string="Conversation Messages" create="false" edit="false" delete="false">
+                                    <field name="create_date"/>
+                                    <field name="is_user_message"/>
+                                    <field name="content"/>
+                                    <field name="tokens_used" attrs="{'invisible': [('is_user_message', '=', True)]}"/>
+                                    <field name="credit_cost" attrs="{'invisible': [('is_user_message', '=', True)]}"/>
+                                    <field name="response_time" attrs="{'invisible': [('is_user_message', '=', True)]}"/>
+                                </tree>
+                                <form string="Message Details">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="create_date" readonly="1"/>
+                                                <field name="is_user_message" readonly="1"/>
+                                                <field name="tokens_used" readonly="1"/>
+                                                <field name="response_time" readonly="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="credit_cost" readonly="1"/>
+                                                <field name="actual_cost_usd" readonly="1" groups="base.group_system"/>
+                                                <field name="revenue_usd" readonly="1" groups="base.group_system"/>
+                                            </group>
+                                        </group>
+                                        <group string="Message Content">
+                                            <field name="content" readonly="1" nolabel="1"/>
+                                        </group>
+                                        <group string="Error Information" attrs="{'invisible': [('error_message', '=', False)]}">
+                                            <field name="error_message" readonly="1" nolabel="1"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Context" name="context">
+                            <group>
+                                <field name="context_info" 
+                                       placeholder="Additional context information about this conversation..."/>
+                            </group>
+                        </page>
+                        <page string="Analytics" name="analytics" groups="base.group_system">
+                            <group string="Business Metrics">
+                                <group>
+                                    <field name="total_tokens_used" readonly="1"/>
+                                    <field name="total_cost_usd" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_credits_used" readonly="1"/>
+                                    <label for="profit_margin"/>
+                                    <div>
+                                        <field name="total_cost_usd" readonly="1" class="oe_inline"/> → 
+                                        <field name="total_credits_used" readonly="1" class="oe_inline"/> credits
+                                        <span class="text-muted"> (profit margin calculation)</span>
+                                    </div>
+                                </group>
+                            </group>
+                            <separator string="Conversation Summary"/>
+                            <div class="o_form_sheet_bg">
+                                <div class="alert alert-info">
+                                    <p><strong>Conversation Performance:</strong></p>
+                                    <ul>
+                                        <li>Average tokens per message: <span t-field="total_tokens_used"/> ÷ <span t-field="message_count"/> = 
+                                            <strong t-esc="total_tokens_used / (message_count or 1)"/> tokens</li>
+                                        <li>Average credits per message: <span t-field="total_credits_used"/> ÷ <span t-field="message_count"/> = 
+                                            <strong t-esc="total_credits_used / (message_count or 1)"/> credits</li>
+                                        <li>Duration: <span t-esc="(last_message_date - create_date).days if last_message_date and create_date else 0"/> days</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread" options="{'display_log_button': True}"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Conversation Search View -->
+    <record id="view_ai_conversation_search" model="ir.ui.view">
+        <field name="name">ai.conversation.search</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <search string="Search Conversations">
+                <field name="title" string="Title"/>
+                <field name="user_id" string="User"/>
+                <field name="context_info" string="Context"/>
+                
+                <filter string="My Conversations" 
+                        name="my_conversations" 
+                        domain="[('user_id', '=', uid)]"/>
+                <filter string="Active" 
+                        name="active" 
+                        domain="[('is_active', '=', True)]"/>
+                <filter string="Archived" 
+                        name="archived" 
+                        domain="[('is_active', '=', False)]"/>
+                <separator/>
+                <filter string="Recent (Last 7 days)" 
+                        name="recent" 
+                        domain="[('create_date', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" 
+                        name="this_month" 
+                        domain="[('create_date', '>=', context_today().strftime('%Y-%m-01'))]"/>
+                <separator/>
+                <filter string="High Usage (50+ messages)" 
+                        name="high_usage" 
+                        domain="[('message_count', '>=', 50)]"/>
+                <filter string="High Cost (10+ credits)" 
+                        name="high_cost" 
+                        domain="[('total_credits_used', '>=', 10)]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Creation Date" name="group_date" context="{'group_by': 'create_date:month'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'is_active'}"/>
+                    <filter string="Message Count" name="group_messages" 
+                            context="{'group_by': 'message_count'}"
+                            help="Group by message count ranges"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Conversation Kanban View -->
+    <record id="view_ai_conversation_kanban" model="ir.ui.view">
+        <field name="name">ai.conversation.kanban</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="user_id" class="o_kanban_small_column">
+                <field name="id"/>
+                <field name="title"/>
+                <field name="user_id"/>
+                <field name="message_count"/>
+                <field name="total_credits_used"/>
+                <field name="last_message_date"/>
+                <field name="is_active"/>
+                <field name="create_date"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary">
+                                        <strong><t t-esc="record.title.value"/></strong>
+                                    </div>
+                                    <div class="text-muted">
+                                        <i class="fa fa-comments"/> <t t-esc="record.message_count.value"/> messages
+                                        <t t-if="record.total_credits_used.value">
+                                            • <i class="fa fa-coins"/> <t t-esc="record.total_credits_used.value"/> credits
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_manage_button_section">
+                                    <a class="o_kanban_manage_toggle_button" href="#" tabindex="-1">
+                                        <i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_content">
+                                <div class="text-muted">
+                                    <t t-if="record.last_message_date.value">
+                                        Last activity: <t t-esc="record.last_message_date.value"/>
+                                    </t>
+                                    <t t-else="">
+                                        Created: <t t-esc="record.create_date.value"/>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_manage_pane dropdown-menu" role="menu">
+                                <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                                <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                <div class="dropdown-divider"/>
+                                <a role="menuitem" class="dropdown-item" 
+                                   name="%(action_ai_chat_view)d" type="action"
+                                   context="{'default_conversation_id': active_id}">
+                                    <i class="fa fa-robot"/> Continue Chat
+                                </a>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Conversation Calendar View -->
+    <record id="view_ai_conversation_calendar" model="ir.ui.view">
+        <field name="name">ai.conversation.calendar</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <calendar string="Conversations" 
+                      date_start="create_date" 
+                      color="user_id"
+                      quick_add="False"
+                      event_open_popup="True">
+                <field name="title"/>
+                <field name="user_id"/>
+                <field name="message_count"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Conversation Pivot View -->
+    <record id="view_ai_conversation_pivot" model="ir.ui.view">
+        <field name="name">ai.conversation.pivot</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <pivot string="Conversation Analysis">
+                <field name="user_id" type="row"/>
+                <field name="create_date" type="col" interval="month"/>
+                <field name="message_count" type="measure"/>
+                <field name="total_tokens_used" type="measure"/>
+                <field name="total_credits_used" type="measure"/>
+                <field name="total_cost_usd" type="measure" groups="base.group_system"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Conversation Graph View -->
+    <record id="view_ai_conversation_graph" model="ir.ui.view">
+        <field name="name">ai.conversation.graph</field>
+        <field name="model">ai.conversation</field>
+        <field name="arch" type="xml">
+            <graph string="Conversation Statistics" type="bar">
+                <field name="create_date" type="row" interval="week"/>
+                <field name="message_count" type="measure"/>
+                <field name="total_credits_used" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Update main conversation action to include all views -->
+    <record id="action_ai_conversation_tree" model="ir.actions.act_window">
+        <field name="name">AI Conversations</field>
+        <field name="res_model">ai.conversation</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="context">{'search_default_my_conversations': 1, 'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No conversations yet!
+            </p>
+            <p>
+                Start a conversation with the AI assistant to get help with Odoo.
+                Your conversations will appear here so you can review and continue them later.
+            </p>
+            <p>
+                <a href="/web#action=ai_assistant.action_ai_chat_view" class="btn btn-primary">
+                    <i class="fa fa-robot"/> Start New Chat
+                </a>
+            </p>
+        </field>
+    </record>
+</odoo>
 
