@@ -41,4 +41,39 @@ class AIConversation(models.Model):
             ai_messages = record.message_ids.filtered(lambda m: not m.is_user_message)
             record.total_tokens_used = sum(ai_messages.mapped('tokens_used'))
             record.total_cost_usd = sum(ai_messages.mapped('actual_cost_usd'))
-            record.total_credits_used = su
+            record.total_credits_used = sum(ai_messages.mapped('credit_cost'))
+
+    @api.model
+    def create_conversation(self, title=None):
+        """Create a new conversation"""
+        if not title:
+            # Generate a title based on timestamp
+            from datetime import datetime
+            title = f"Conversation {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        
+        conversation = self.create({
+            'title': title,
+            'user_id': self.env.user.id,
+        })
+        
+        _logger.info(f"Created new conversation {conversation.id} for user {self.env.user.name}")
+        return conversation
+
+    def archive_conversation(self):
+        """Archive a conversation"""
+        self.ensure_one()
+        self.is_active = False
+        _logger.info(f"Archived conversation {self.id}")
+
+    def action_view_messages(self):
+        """Open messages for this conversation"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Messages',
+            'res_model': 'ai.message',
+            'view_mode': 'tree,form',
+            'domain': [('conversation_id', '=', self.id)],
+            'context': {'default_conversation_id': self.id},
+        }
+
