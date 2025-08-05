@@ -1,16 +1,77 @@
-<!-- Remove this menu for regular users -->
-<!-- 
-<menuitem id="menu_ai_configuration"
-          name="Configuration"
-          parent="menu_ai_assistant_root"
-          action="action_ai_assistant_config"
-          sequence="30"
-          groups="base.group_system"/>
--->
-
-<!-- Add Service Info menu instead -->
-<menuitem id="menu_ai_service_info"
-          name="Service Info"
-          parent="menu_ai_assistant_root"
-          action="action_ai_service_info"
-          sequence="30"/>
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_ai_assistant_root" 
+              name="AI Assistant" 
+              sequence="50"
+              web_icon="ai_assistant,static/description/icon.png"/>
+    
+    <!-- Chat Action -->
+    <record id="action_ai_chat_view" model="ir.actions.client">
+        <field name="name">AI Chat</field>
+        <field name="tag">ai_chat_widget</field>
+        <field name="target">current</field>
+    </record>
+    
+    <!-- Sub-menus -->
+    <menuitem id="menu_ai_chat"
+              name="Chat"
+              parent="menu_ai_assistant_root"
+              action="action_ai_chat_view"
+              sequence="10"/>
+    
+    <menuitem id="menu_ai_conversations"
+              name="My Conversations"
+              parent="menu_ai_assistant_root"
+              action="action_ai_conversation_tree"
+              sequence="20"/>
+    
+    <menuitem id="menu_ai_my_account"
+              name="My Credits"
+              parent="menu_ai_assistant_root"
+              action="action_ai_my_credits"
+              sequence="30"/>
+    
+    <!-- Manager menus -->
+    <menuitem id="menu_ai_business"
+              name="Analytics"
+              parent="menu_ai_assistant_root"
+              sequence="40"
+              groups="ai_assistant.group_ai_assistant_manager"/>
+    
+    <menuitem id="menu_ai_all_conversations"
+              name="All Conversations"
+              parent="menu_ai_business"
+              action="action_ai_all_conversations"
+              sequence="10"/>
+    
+    <menuitem id="menu_ai_all_users"
+              name="User Credits"
+              parent="menu_ai_business"
+              action="action_ai_all_user_credits"
+              sequence="20"/>
+    
+    <menuitem id="menu_ai_configuration"
+              name="Configuration"
+              parent="menu_ai_assistant_root"
+              action="action_ai_assistant_config"
+              sequence="100"
+              groups="base.group_system"/>
+    
+    <!-- Additional Actions -->
+    <record id="action_ai_all_conversations" model="ir.actions.act_window">
+        <field name="name">All Conversations</field>
+        <field name="res_model">ai.conversation</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="context">{}</field>
+        <field name="domain">[]</field>
+    </record>
+    
+    <record id="action_ai_all_user_credits" model="ir.actions.act_window">
+        <field name="name">All User Credits</field>
+        <field name="res_model">ai.user.credit</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{}</field>
+        <field name="domain">[]</field>
+    </record>
+</odoo>
