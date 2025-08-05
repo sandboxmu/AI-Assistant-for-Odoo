@@ -1,5 +1,5 @@
 {
-    'name': 'AI Assistant for Odoo - Helper ask anything',
+    'name': 'AI Assistant for Odoo - Chat Whisperer Integration',
     'version': '17.0.1.0.0',
     'category': 'Productivity',  # Changed from 'Tools'
     'summary': 'AI-powered assistant with built-in credit system',
