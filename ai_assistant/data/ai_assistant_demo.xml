@@ -1,0 +1,23 @@
+<odoo noupdate="1">
+  <record id="demo_ai_assistant_config" model="ai.assistant.config">
+    <field name="name">Demo Bot Config</field>
+    <field name="chatbot_id">1754325699224x235880637442555900</field>
+    <field name="is_active">True</field>
+  </record>
+
+  <record id="demo_ai_conversation" model="ai.conversation">
+    <field name="name">Demo Chat</field>
+  </record>
+
+  <record id="demo_ai_message_user" model="ai.message">
+    <field name="conversation_id" ref="demo_ai_conversation"/>
+    <field name="role">user</field>
+    <field name="content">Hello, how do I use this assistant?</field>
+  </record>
+
+  <record id="demo_ai_message_bot" model="ai.message">
+    <field name="conversation_id" ref="demo_ai_conversation"/>
+    <field name="role">assistant</field>
+    <field name="content">Hi! I'm here to help you with anything related to Odoo.</field>
+  </record>
+</odoo>
