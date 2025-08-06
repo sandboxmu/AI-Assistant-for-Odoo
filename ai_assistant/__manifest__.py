@@ -28,7 +28,7 @@ Features:
 - Demo data for testing
 """,
     'author': 'Chat Whisperer',
-    'website': 'https://www.chatwhisperer.ai',
+    'website': 'https://bot.chatwhisperer.ai/chatbot/1754325699224x235880637442555900i',
     'support': 'omamet@chatwhisperer.ai',
     'maintainer': 'Chat Whisperer',
 
