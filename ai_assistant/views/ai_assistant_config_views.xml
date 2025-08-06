@@ -1,5 +1,4 @@
-# XML: ai_assistant_config_views.xml
-
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <record id="view_ai_assistant_config_form" model="ir.ui.view">
     <field name="name">ai.assistant.config.form</field>
@@ -27,15 +26,4 @@
       </tree>
     </field>
   </record>
-
-  <record id="action_ai_assistant_config" model="ir.actions.act_window">
-    <field name="name">Assistant Configurations</field>
-    <field name="res_model">ai.assistant.config</field>
-    <field name="view_mode">tree,form</field>
-  </record>
-
-  <menuitem id="menu_ai_assistant_root" name="Chat Whisperer AI" sequence="10"/>
-  <menuitem id="menu_ai_assistant_config" name="Configurations" parent="menu_ai_assistant_root" action="action_ai_assistant_config"/>
 </odoo>
-
-
