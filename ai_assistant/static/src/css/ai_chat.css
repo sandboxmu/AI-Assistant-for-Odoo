@@ -720,4 +720,47 @@
 
 .text-success { color: #28a745 !important; }
 .text-info { color: #17a2b8 !important; }
-.text-warning { colo
+/* Continuation of ai_chat.css */
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+
+/* Print styles */
+@media print {
+    .ai-chat-sidebar,
+    .ai-chat-input,
+    .header-actions,
+    .conversation-actions,
+    .message-actions {
+        display: none !important;
+    }
+    
+    .ai-chat-main {
+        width: 100% !important;
+    }
+    
+    .message-content {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .ai-chat-container {
+        background: #ffffff;
+    }
+    
+    .message-content {
+        border: 2px solid #000000 !important;
+    }
+    
+    .user-message .message-content {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    .ai-message .message-content {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+}
