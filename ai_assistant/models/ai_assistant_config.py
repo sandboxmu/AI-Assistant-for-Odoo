@@ -15,7 +15,7 @@ class AssistantConfig(models.Model):
     )
     is_active = fields.Boolean('Use This Configuration', default=False)
     
-    # Additional fields for compatibility
+    # Additional fields for compatibility with existing code
     provider = fields.Char('Provider', default='chatwhisperer', readonly=True)
     model_name = fields.Char('Model Name', default='chatwhisperer-bot', readonly=True)
     api_key = fields.Char('API Key')
@@ -54,3 +54,4 @@ class AssistantConfig(models.Model):
         cost_usd = (tokens / 1000) * self.cost_per_1k_tokens
         markup_multiplier = 1 + (self.markup_percentage / 100)
         return (cost_usd * markup_multiplier) * self.credit_rate
+
