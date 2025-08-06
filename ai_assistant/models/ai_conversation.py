@@ -1,3 +1,4 @@
+# ai_assistant/models/ai_conversation.py
 from odoo import models, fields, api
 import logging
 
@@ -45,35 +46,29 @@ class AIConversation(models.Model):
 
     @api.model
     def create_conversation(self, title=None):
-        """Create a new conversation"""
+        """Create a new conversation for the current user"""
         if not title:
-            # Generate a title based on timestamp
-            from datetime import datetime
-            title = f"Conversation {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            title = f"Chat {self.search_count([('user_id', '=', self.env.user.id)]) + 1}"
         
-        conversation = self.create({
+        return self.create({
             'title': title,
             'user_id': self.env.user.id,
         })
-        
-        _logger.info(f"Created new conversation {conversation.id} for user {self.env.user.name}")
-        return conversation
 
     def archive_conversation(self):
-        """Archive a conversation"""
+        """Archive this conversation"""
         self.ensure_one()
-        self.is_active = False
-        _logger.info(f"Archived conversation {self.id}")
+        self.write({'is_active': False})
+        return True
 
     def action_view_messages(self):
-        """Open messages for this conversation"""
+        """Open messages view for this conversation"""
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Messages',
+            'name': f'Messages - {self.title}',
             'res_model': 'ai.message',
             'view_mode': 'tree,form',
             'domain': [('conversation_id', '=', self.id)],
             'context': {'default_conversation_id': self.id},
         }
-
