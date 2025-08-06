@@ -1,0 +1,7 @@
+<odoo>
+    <template id="ai_chat_page" name="AI Chat Page">
+        <t t-call="web.layout">
+            <div id="ai_chat_app"></div>
+        </t>
+    </template>
+</odoo>
