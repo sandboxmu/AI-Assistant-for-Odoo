@@ -1,4 +1,3 @@
-<!-- ai_assistant/views/menu_views.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Main AI Assistant Menu -->
@@ -14,29 +13,8 @@
         <field name="target">current</field>
     </record>
 
-    <!-- My Credits Action -->
-    <record id="action_ai_my_credits" model="ir.actions.act_window">
-        <field name="name">My Credits</field>
-        <field name="res_model">ai.user.credit</field>
-        <field name="view_mode">form</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'create': False}</field>
-    </record>
-
-    <!-- Conversations Action -->
-    <record id="action_ai_conversation_tree" model="ir.actions.act_window">
-        <field name="name">My Conversations</field>
-        <field name="res_model">ai.conversation</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-    </record>
-
-    <!-- Configuration Action -->
-    <record id="action_ai_assistant_config" model="ir.actions.act_window">
-        <field name="name">AI Configuration</field>
-        <field name="res_model">ai.assistant.config</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+    <!-- My Credits Action (already defined in ai_user_credit_views.xml) -->
+    <!-- Conversations Action (already defined in ai_conversation_views.xml) -->
 
     <!-- Menu Items -->
     <menuitem id="menu_ai_chat"
