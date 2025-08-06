@@ -721,8 +721,49 @@
 .text-success { color: #28a745 !important; }
 .text-info { color: #17a2b8 !important; }
 /* Continuation of ai_chat.css */
+/* Add this to the end of ai_assistant/static/src/css/ai_chat.css */
+
 .text-warning { color: #ffc107 !important; }
 .text-danger { color: #dc3545 !important; }
+
+/* Focus states */
+.conversation-item:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+.send-button:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.conversation-item.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Error states */
+.ai-chat-container.error {
+    border: 2px solid #dc3545;
+}
+
+/* Success states */
+.message-sent {
+    animation: messageSent 0.3s ease-out;
+}
+
+@keyframes messageSent {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
 
 /* Print styles */
 @media print {
